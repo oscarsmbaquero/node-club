@@ -5,7 +5,7 @@ const partySchema = new Schema(
   {
     nombre: { type: String, required: true },    
     descripcion: { type: String, required: true },
-    date: { type: Date, required: false },
+    fecha: { type: Date, required: false },
     image: { type: String, required: false },
   },
   {
