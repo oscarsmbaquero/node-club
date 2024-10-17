@@ -11,6 +11,7 @@ import { DB_URL, connect } from "./server/config/db.js";
 //IMPORTACION DE RUTAS
 
 import { userRoutes } from "./server/api/routes/users.routes.js";
+import { partysRoutes } from "./server/api/routes/partys.routes.js";
 //creo servidor express
 const server = express();
 //conectamos a traves de la funcion de mongo
@@ -33,6 +34,7 @@ server.use(cors('*'));
 //RUTAS
 
 server.use("/users", userRoutes);
+server.use("/parties", partysRoutes)
 
 
 
