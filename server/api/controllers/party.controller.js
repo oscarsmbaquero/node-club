@@ -21,8 +21,29 @@ const getPartys = async (req, res, next) => {
   }
 };
 
+const addParty = async (req, res, next) => {
 
+  try {
+    const NewGasto = new Party({
+      nombre: req.body.name,
+      descripcion: req.body.description,    
+      fecha: req.body.fecha,
+      image: req.file_url,
 
-export {  
-  getPartys
+      //tipo:req.body.tipo,
+    });
+    //console.log(NewGasto,'new');
+    const newGastoDB = await NewGasto.save();
+    return res.json({
+      status: 201,
+      message: httpStatusCode[201],
+      data: { gastos: newGastoDB },
+    });
+  } catch (error) {
+    return next(error);
+  }
 };
+
+
+
+export { getPartys, addParty };
