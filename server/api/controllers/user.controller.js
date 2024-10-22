@@ -15,11 +15,18 @@ const loginUser = async (req, res, next) => {
     const bytes = CryptoJS.AES.decrypt(encryptedPassword, CRYPTO_KEY);
     const password = bytes.toString(CryptoJS.enc.Utf8);
     // Comprobar email
-    const user = await User.findOne({ mail: body.user });
+    const user = await User.findOne({ mail: body.mail });
+    // Si no existe el usuario
+    if (!user) {
+      return res.status(404).json({
+        status: 404,
+        message: "User does not exist!",
+      });
+    }
     // Comprobar password
     const isValidPassword = await bcrypt.compare(password, user.password);
     // Control de LOGIN
-    if (!user || !isValidPassword) {
+    if (!isValidPassword) {
       const error = {
         status: 401,
         message: "The email & password combination is incorrect!",
@@ -42,15 +49,12 @@ const loginUser = async (req, res, next) => {
       message: httpStatusCode[200],
       data: {
         id: user._id,
-        user: user.user,
-        theme: user.theme,
-        language: user.language,
+        user: user.mail,
         token: token,
         rol: user.rol,
       },
     });
   } catch (error) {
-    //console.log(error);
     return next(error);
   }
 };
@@ -103,93 +107,10 @@ const registerUser = async (req, res, next) => {
     const pwdHash = await bcrypt.hash(password, 10);
     // Crear usuario en DB
     const newUser = new User({
-      user: body.user,
-      //tlf: body.tlf,
       mail: body.mail,
       password: pwdHash,
-      //address: body.address,
-      //localidad: body.localidad,
-      //provincia: body.provincia,
-      //cp: body.cp
+      rol: "client",
     });
-
-    //envio de mail
-    const config = {
-      host: "smtp.gmail.com",
-      port: 587,
-      auth: {
-        user: "oscarsmb@gmail.com",
-        pass: "ewqt tsig kcdc pgjl",
-      },
-    };
-
-    const mensaje = {
-      from: "Why Music everywhere",
-      to: newUser.mail,
-      subject: `Bienvenido  ${newUser.user}`,
-      html: `
-         <body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #000; color: #fff;">
-        
-            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #000; max-width: 600px; margin: 0 auto;">
-                <tr>
-                    <td align="center" style="padding: 20px 0;">
-                        <img src="https://res.cloudinary.com/dcfk8yjwr/image/upload/c_scale,w_110/v1727688473/why_light_1_y9ct0v.png" alt="WhyLogo" style="display: block; margin: 0 auto">
-                    </td>
-                </tr>
-        
-                <tr>
-                    <td align="center" style="padding: 20px;">
-                        <img src="https://res.cloudinary.com/dcfk8yjwr/image/upload/v1727688495/foto-foco_t8xfr0.jpg" alt="Modelo 1" style="max-width: 200px; display: inline-block; margin-right: 10px;">
-                    </td>
-                </tr>        
-                <tr>
-                    <td style="padding: 20px; text-align: left; color: #fff;">
-                        <p>Hola <strong>${newUser.user}</strong>,</p>
-                        <p>Te damos la bienvenida a <span style="color: #D9FF00;">Why Not Music Everyehere</span>.</p>
-                        <p>
-                            Ser parte de nuestra comunidad no solo se basa en compartir una misma filosofía de vida.
-                            Ser parte de nuestra red implica tener acceso a la libertad, la inconformismo, y la prevención.
-                        </p>
-        
-                        <ul style="list-style-type: none; padding: 0; color: #D9FF00;">
-                            <li>✔️ Tener acceso a promociones</li>
-                            <li>✔️ Acceder a descuentos</li>
-                        </ul>        
-                        <p style="color: #fff;">Como regalo de bienvenida, tu próxima compra tiene un 10% de descuento con el código: <strong style="color: #D9FF00;">COD-00001</strong>.</p>
-                    </td>
-                </tr>        
-                <tr>
-                    <td align="center" style="padding: 20px;">
-                        <img src="https://via.placeholder.com/150x150?text=QR+Code" alt="Código QR" style="display: block; margin: 0 auto;">
-                    </td>
-                </tr>
-        
-                <tr>
-                    <td align="center" style="padding: 20px;">
-                        <p style="color: #ccc; font-size: 12px;">Puedes acceder a la configuración de tu perfil <a href="https://angular-e-commerce-ruby.vercel.app/client/account" style="color: #D9FF00; text-decoration: none;">AQUÍ</a></p>
-                    </td>
-                </tr>
-        
-                <tr>
-                    <td align="center" style="padding: 20px;">
-                        <a href="#" style="margin: 0 10px;"><img src="https://res.cloudinary.com/dcfk8yjwr/image/upload/c_scale,w_88/v1727688932/facebook_evwuo3.png" alt="Facebook" style="display: inline-block; width: 80px;"></a>
-                        <a href="#" style="margin: 0 10px;"><img src="https://res.cloudinary.com/dcfk8yjwr/image/upload/c_scale,w_88/v1727688955/X_kv3x2v.png" alt="Twitter" style="display: inline-block; width: 80px;"></a>
-                        <a href="#" style="margin: 0 10px;"><img src="https://res.cloudinary.com/dcfk8yjwr/image/upload/c_scale,w_88/v1727688954/instagram_eoi3gv.png" alt="Instagram" style="display: inline-block; width: 80px;"></a>
-                    </td>
-                </tr>
-        
-                <tr>
-                    <td align="center" style="padding: 20px; font-size: 12px; color: #555;">
-                        <p>Why not music everywhere, todos los derechos reservados.</p>
-                    </td>
-                </tr>
-            </table>
-        </body>
-      `,
-     };
-     const transport = nodemailer.createTransport(config);
-
-    const info = await transport.sendMail(mensaje);
     const savedUser = await newUser.save();
     // Respuesta
     return res.status(201).json({
@@ -224,15 +145,12 @@ const OrderClient =
   });
 
 const getUserById = async (req, res, next) => {
-  console.log("entro");
   try {
     const { id } = req.params;
     //console.log(id);
     const userById = await User.findById(id).select(
       "-password -address -localidad -tlf -cp"
     );
-
-    console.log(userById);
 
     return res.status(200).json(userById);
     // return res.json({
@@ -281,7 +199,7 @@ const editUser = async (req, res, next) => {
 const getUserByMail = async (req, res, next) => {
   try {
     const { email } = req.params;
-    
+
     // Buscar usuario por correo
     const userById = await User.findOne({ mail: email });
 
@@ -289,7 +207,7 @@ const getUserByMail = async (req, res, next) => {
     if (!userById) {
       return res.status(404).json({
         status: 404,
-        message: 'Usuario no encontrado',
+        message: "Usuario no encontrado",
       });
     }
 
@@ -297,27 +215,24 @@ const getUserByMail = async (req, res, next) => {
     if (!userById.mail) {
       return res.status(400).json({
         status: 400,
-        message: 'El usuario no tiene un correo registrado',
+        message: "El usuario no tiene un correo registrado",
       });
     }
 
     // Respuesta exitosa con el mail del usuario
     return res.status(200).json({
       status: 200,
-      message: 'Usuario encontrado',
+      message: "Usuario encontrado",
       data: { mail: userById.mail },
     });
-
   } catch (error) {
-    console.error('Error en getUserByMail:', error); // Agregar más detalles en los errores
     return res.status(500).json({
       status: 500,
-      message: 'Error interno del servidor',
-      error: error.message, // Enviar el mensaje del error para más detalles
+      message: "Error interno del servidor",
+      error: error.message,
     });
   }
 };
-
 
 // const getUserByMail = async (req, res, next) => {
 //   try {
@@ -430,12 +345,10 @@ const changePassword = async (req, res, next) => {
       .json({ message: "Contraseña actualizada correctamente" });
   } catch (error) {
     console.error("Error al cambiar la contraseña:", error);
-    return res
-      .status(500)
-      .json({
-        message: "Error al cambiar la contraseña",
-        error: error.message,
-      });
+    return res.status(500).json({
+      message: "Error al cambiar la contraseña",
+      error: error.message,
+    });
   }
 };
 
