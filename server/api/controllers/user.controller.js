@@ -253,6 +253,8 @@ const getUserByMail = async (req, res, next) => {
 const resetPassword = async (req, res, next) => {
   try {
     const { email } = req.params;
+    console.log(email);
+    
     const previousUser = await User.findOne({ mail: email });
     // console.log(previousUser, 285);
     //await sendMail(email);
@@ -266,7 +268,7 @@ const resetPassword = async (req, res, next) => {
     const token = jwt.sign(
       {
         id: previousUser._id,
-        user: previousUser.user,
+        user: previousUser.mail,
       },
       req.app.get("secretKey"),
       { expiresIn: "1h" }
@@ -280,23 +282,13 @@ const resetPassword = async (req, res, next) => {
         pass: "ewqt tsig kcdc pgjl",
       },
     };
-    // const mensaje = {
-    //   from: "Coexist",
-    //   to: email,
-    //   subject: `Contraseña usuario ${previousUser.user}`,
-    //   //text: `https://angular-e-commerce-ruby.vercel.app/user/new${token}`
-    //   text: `Hola  ${previousUser.user}. Adjuntamos enlace para recuperar tu contraseña.
-    //   Este enlace caduca en 1 hora.
-    //   https://angular-e-commerce-ruby.vercel.app/user/new/${token}.
-    //   Un saludo desde el equipo de Why`,
-    // };
     const mensaje = {
       from: "Coexist",
       to: email,
-      subject: `Contraseña usuario ${previousUser.user}`,
+      subject: `Contraseña usuario ${previousUser.mail}`,
       html: `
         <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-          <h2 style="color: #0056b3;">Hola, ${previousUser.user}!</h2>
+          <h2 style="color: #0056b3;">Hola, ${previousUser.mail}!</h2>
           <p>Has solicitado restablecer tu contraseña. Haz clic en el enlace a continuación para cambiar tu contraseña. Este enlace caduca en 1 hora:</p>
           <a href="https://angular-e-commerce-ruby.vercel.app/user/new/${token}" style="background-color: blue; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Restablecer contraseña</a>
           <p>Si no has solicitado restablecer tu contraseña, simplemente ignora este mensaje.</p>
