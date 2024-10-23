@@ -49,7 +49,7 @@ const loginUser = async (req, res, next) => {
       message: httpStatusCode[200],
       data: {
         id: user._id,
-        user: user.mail,
+        user: user.user,
         token: token,
         rol: user.rol,
       },
@@ -107,10 +107,13 @@ const registerUser = async (req, res, next) => {
     const pwdHash = await bcrypt.hash(password, 10);
     // Crear usuario en DB
     const newUser = new User({
+      user: body.user,
       mail: body.mail,
       password: pwdHash,
       rol: "client",
     });
+    console.log(newUser);
+    
     const savedUser = await newUser.save();
     // Respuesta
     return res.status(201).json({
