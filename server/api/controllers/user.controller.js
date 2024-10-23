@@ -234,42 +234,31 @@ const getUserByMail = async (req, res, next) => {
   }
 };
 
-// const getUserByMail = async (req, res, next) => {
-//   try {
-//     const { email } = req.params;
-//     const userById = await User.findOne({ mail: email });
-//     return res.status(200).json(userById.mail);
-//     // return res.json({
-//     //     status: 200,
-//     //     message: httpStatusCode[200],
-//     //     data: { jobs: userById },
-//     // });
-//     //res.send(jobbyid);
-//   } catch (error) {
-//     return next(error);
-//   }
-// };
-
+/**
+ * Función para resetear cuenta
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ * @returns 
+ */
 const resetPassword = async (req, res, next) => {
   try {
     const { email } = req.params;
     console.log(email);
     
     const previousUser = await User.findOne({ mail: email });
-    // console.log(previousUser, 285);
-    //await sendMail(email);
     if (!previousUser) {
       return res.status(404).json({
         status: 404,
         message: "Usuario no encontrado",
       });
     }
-    //const user = await User.findOne({ user: body.user });
     const token = jwt.sign(
       {
         id: previousUser._id,
         user: previousUser.mail,
       },
+      
       req.app.get("secretKey"),
       { expiresIn: "1h" }
     );
