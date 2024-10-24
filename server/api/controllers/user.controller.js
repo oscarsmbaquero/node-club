@@ -111,9 +111,7 @@ const registerUser = async (req, res, next) => {
       mail: body.mail,
       password: pwdHash,
       rol: "client",
-    });
-    console.log(newUser);
-    
+    });    
     const savedUser = await newUser.save();
     // Respuesta
     return res.status(201).json({
@@ -127,25 +125,6 @@ const registerUser = async (req, res, next) => {
     return next(error);
   }
 };
-
-const OrderClient =
-  ("/",
-  async (req, res, next) => {
-    try {
-      const { userId } = req.params;
-
-      const userById = await User.findById(userId)
-        .select("-password")
-        .populate([{ path: "numeroPedido", select: "" }]);
-      return res.json({
-        //  status : 200,
-        //  message : httpStatusCode[200],
-        data: { pedidos: userById },
-      });
-    } catch (error) {
-      return next(error);
-    }
-  });
 
 const getUserById = async (req, res, next) => {
   try {
@@ -167,38 +146,38 @@ const getUserById = async (req, res, next) => {
   }
 };
 
-const editUser = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const updates = req.body; // Se asume que req.body contiene los campos que quieres actualizar.
+// const editUser = async (req, res, next) => {
+//   try {
+//     const { id } = req.params;
+//     const updates = req.body; // Se asume que req.body contiene los campos que quieres actualizar.
 
-    // Asegúrate de que no se intenta modificar el _id
-    if (updates._id) {
-      delete updates._id;
-    }
+//     // Asegúrate de que no se intenta modificar el _id
+//     if (updates._id) {
+//       delete updates._id;
+//     }
 
-    const userUpdated = await User.findByIdAndUpdate(
-      id,
-      { $set: updates },
-      { new: true, runValidators: true }
-    );
+//     const userUpdated = await User.findByIdAndUpdate(
+//       id,
+//       { $set: updates },
+//       { new: true, runValidators: true }
+//     );
 
-    if (!userUpdated) {
-      return res.status(404).json({
-        status: 404,
-        message: "User not found",
-      });
-    }
+//     if (!userUpdated) {
+//       return res.status(404).json({
+//         status: 404,
+//         message: "User not found",
+//       });
+//     }
 
-    return res.json({
-      status: 200,
-      message: "User updated successfully",
-      data: { user: userUpdated },
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
+//     return res.json({
+//       status: 200,
+//       message: "User updated successfully",
+//       data: { user: userUpdated },
+//     });
+//   } catch (error) {
+//     return next(error);
+//   }
+// };
 const getUserByMail = async (req, res, next) => {
   try {
     const { email } = req.params;
@@ -256,15 +235,12 @@ const resetPassword = async (req, res, next) => {
         message: "Usuario no encontrado",
       });
     }
-    const token = jwt.sign(
-      {
-        id: previousUser._id,
-        user: previousUser.mail,
-      },
-      
+    const token = jwt.sign({ id: previousUser._id },      
       req.app.get("secretKey"),
       { expiresIn: "1h" }
     );
+    console.log(token);
+    
     //envio de mail
     const config = {
       host: "smtp.gmail.com",
@@ -361,10 +337,8 @@ export {
   loginUser,
   logoutUser,
   registerUser,
-  OrderClient,
   getUsers,
   getUserById,
-  editUser,
   getUserByMail,
   resetPassword,
   changePassword,
