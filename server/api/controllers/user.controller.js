@@ -131,7 +131,7 @@ const getUserById = async (req, res, next) => {
     const { id } = req.params;
     //console.log(id);
     const userById = await User.findById(id).select(
-      "-password -address -localidad -tlf -cp"
+      "-password"
     );
 
     return res.status(200).json(userById);
